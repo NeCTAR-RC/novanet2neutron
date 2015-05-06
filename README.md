@@ -38,3 +38,10 @@ Gameday
 * Clear iptables and restart nova-compute and neutron-linuxbridge
 * (May be needed) Add rule for metadata iptables -t nat -I PREROUTING -d 169.254.169.254/32 -p tcp -m tcp --dport 80 -j DNAT --to-destination <metadata_host>:80 - this may be needed depending on how your metadata works
 * killall nova dnsmasq process
+
+
+Gotchas
+=======
+
+* You can't migrate instances in suspended state, this is because the libvirt xml imformation is stored in binary in the .save file
+* IPv6 hasn't been tested yet.
