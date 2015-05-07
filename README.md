@@ -7,10 +7,9 @@ It will use linuxbridge plugin.
 
 "simple" and "flat" meaning one or more shared provider networks (neutron speak)
 
-It currently only supports 1 or 2 networks per compute node but it should be simple to extend.
-It assumes that the control pane will be unavailable during the migration. 
-Instance traffic will be largely unaffected with a ~5 second downtime while renaming
-the interfaces. The nova-api-metadata service will also be stopped during the migration
+It requires that the control pane will be unavailable to users during the migration. 
+Instance traffic will largely be unaffected with a ~5 second downtime while renaming
+the interfaces. The nova-api-metadata service will also be unavailable during the migration
 
 Steps to migrate
 ================
