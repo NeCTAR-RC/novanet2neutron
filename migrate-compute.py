@@ -124,6 +124,9 @@ def migrate_interfaces(noop, migrate_manager, neutronc,
                 old_tap = None
             else:
                 new_tap = manager.get_new_tap(instance, tap_index)
+                if not new_tap:
+                    errors = True
+                    continue
                 tap_index += 1
                 if not utils.device_exists(new_tap):
                     #Rename tap
