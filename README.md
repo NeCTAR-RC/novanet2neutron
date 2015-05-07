@@ -11,6 +11,8 @@ It requires that the control pane will be unavailable to users during the migrat
 Instance traffic will largely be unaffected with a ~5 second downtime while renaming
 the interfaces. The nova-api-metadata service will also be unavailable during the migration
 
+This has been tested in a Juno environment.
+
 Steps to migrate
 ================
 
