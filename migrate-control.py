@@ -24,7 +24,7 @@ def add_port(neutronc, instance, network_id, subnet_id,
             "network_id": network_id,
         }
     }
-    ports = neutronc.list_ports(mac_address=mac_address)
+    ports = neutronc.list_ports(mac_address=mac_address, network_id=network_id)
     if ports['ports']:
         port = ports['ports'][0]
         print "Not creating port for %s already exists" % mac_address
@@ -56,8 +56,9 @@ def add_ports(neutronc, cursor, mappings, instance):
     networks = cursor.fetchall()
     for network in networks:
         zone = network['availability_zone']
-        if zone is None:
-            return
+        if zone is None or zone == 'None':
+            print "unknown zone for %s" % instance.id
+            continue
 
         network_name = network['network_name']
         ip_v4 = network['ip_v4']
@@ -98,13 +99,16 @@ def create_networks(neutronc):
             network = common.create_network(neutronc, name, physnet)
         mappings[section]['network_id'] = network
         subnet_v4 = common.get_subnet(neutronc, network, 4)
-
+        try:
+            gateway_v4 = CONF.get(section, 'gateway_v4')
+        except:
+            gateway_v4 = None
         if not subnet_v4:
             subnet_v4 = common.create_subnet(
                 neutronc, network, 4,
                 CONF.get(section, 'cidr_v4'),
                 CONF.get(section, 'dns_servers').split(','),
-                CONF.get(section, 'gateway_v4'),
+                gateway_v4,
                 CONF.get(section, 'dhcp_start'),
                 CONF.get(section, 'dhcp_end'))
         mappings[section]['subnet_v4_id'] = subnet_v4
