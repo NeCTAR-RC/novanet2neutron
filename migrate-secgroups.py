@@ -99,6 +99,11 @@ def migrate_rules(nova_cursor, neutron_cursor, mappings):
                 rule['ethertype'] = 'IPv6'
             if rule['group_id']:
                 rule['group_id'] = mappings[rule['group_id']]['uuid']
+
+            if rule['to_port'] == -1:
+                rule['to_port'] = 'None'
+            if rule['from_port'] == -1:
+                rule['from_port'] = 'None'
             execute(neutron_cursor, neutron_rule_sql % rule)
 
 
@@ -159,7 +164,9 @@ def main():
     delete_neutron_existing(neutron_cursor)
     mappings = migrate_groups(nova_cursor, neutron_cursor)
     migrate_rules(nova_cursor, neutron_cursor, mappings)
+    neutron_conn.commit()
     migrate_bindings(nova_cursor, neutron_cursor, mappings)
+    neutron_conn.commit()
     nova_cursor.close()
     nova_conn.close()
     neutron_cursor.close()
