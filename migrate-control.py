@@ -3,6 +3,7 @@
 import argparse
 import ConfigParser
 import MySQLdb
+import sys
 import time
 
 from novanet2neutron import common
@@ -38,22 +39,24 @@ def add_port(neutronc, instance, network_id, subnet_id,
                                          network_id=network_id)
     if not instance_ports['ports']:
         try:
+            print 'attach interface'
             instance.interface_attach(port['id'], "", "")
         except Exception, e:
             print e
     else:
-        print "Not attaching, already attached"
+        print "Not attaching, already attached %s" % instance.id
 
 
 def add_ports(neutronc, cursor, mappings, instance):
-    suspend = False
-    if instance.status == "SUSPENDED":
-        instance.resume()
-        time.sleep(2)
-        suspend = True
+    #suspend = False
+    #if instance.status == "SUSPENDED":
+    #    instance.resume()
+    #    time.sleep(2)
+    #    suspend = True
     cursor.execute(
         "SELECT * from network_migration_info where uuid = '%s'" % instance.id)
     networks = cursor.fetchall()
+
     for network in networks:
         zone = network['availability_zone']
         if zone is None or zone == 'None':
@@ -74,9 +77,8 @@ def add_ports(neutronc, cursor, mappings, instance):
             subnet_v6 = network_info['subnet_v6_id']
             add_port(neutronc, instance, neutron_network,
                      subnet_v6, mac_address, ip_v6)
-
-    if suspend:
-        instance.suspend()
+    #if suspend:
+    #    instance.suspend()
 
 
 def create_networks(neutronc):
@@ -123,6 +125,14 @@ def create_networks(neutronc):
     return mappings
 
 
+def check_hypervisors(novac):
+    print "Checking all hypervisors are running fake driver"
+    for h in novac.hypervisors.list():
+        if h.hypervisor_type != 'fake':
+            print 'Hypervisor %s is not fake' % h.hypervisor_hostname
+            sys.exit(1)
+
+
 def collect_args():
     parser = argparse.ArgumentParser(description='novanet2neutron.')
 
@@ -143,11 +153,13 @@ def main():
 
     cursor = MySQLdb.cursors.DictCursor(conn)
     novac = common.get_nova_client()
+    check_hypervisors(novac)
     neutronc = common.get_neutron_client()
-
-    instances = common.all_servers(novac)
+    print "creating networks"
     mappings = create_networks(neutronc)
-    print mappings
+    print "getting instances"
+    instances = common.all_servers(novac)
+    print "adding ports"
 
     for i in instances:
         add_ports(neutronc, cursor, mappings, i)
