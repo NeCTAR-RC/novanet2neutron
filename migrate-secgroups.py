@@ -22,6 +22,10 @@ neutron_binding_sql = """
 INSERT into securitygroupportbindings set port_id='%(port_id)s', security_group_id='%(group_id)s'
 """
 
+neutron_default_group_sql = """
+INSERT INTO default_security_group set tenant_id='%(tenant_id)s', security_group_id='%(group_id)s'
+"""
+
 
 def generate_uuid():
     return str(uuid.uuid4())
@@ -31,6 +35,11 @@ def execute(cursor, sql):
     sql = sql.replace("'None'", 'NULL')
     print sql
     cursor.execute(sql)
+
+
+def create_default_mapping(cursor, group_id, tenant_id):
+    data = {'group_id': group_id, 'tenant_id': tenant_id}
+    execute(cursor, neutron_default_group_sql % data)
 
 
 def create_default_rules(cursor, group):
@@ -50,6 +59,8 @@ def create_default_rules(cursor, group):
         execute(cursor, neutron_rule_sql % rule)
 
     if group['name'] == 'default':
+        create_default_mapping(cursor, group['uuid'],
+                               group['project_id'])
         rule['direction'] = 'ingress'
         rule['group_id'] = group['uuid']
         for ethertype in ['IPv4', 'IPv6']:
@@ -116,6 +127,8 @@ def delete_neutron_existing(cursor):
     cursor.execute("DELETE from securitygroupportbindings")
     cursor.execute("DELETE from securitygrouprules")
     cursor.execute("DELETE from securitygroups")
+    cursor.execute("DELETE from default_security_group")
+    cursor.connection.commit()
 
 
 def collect_args():
