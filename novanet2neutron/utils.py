@@ -4,6 +4,7 @@ from neutron linuxbridge manager and nova linux_net
 
 import ConfigParser
 import os
+from oslo_concurrency import processutils
 
 
 CONF = ConfigParser.ConfigParser()
@@ -13,9 +14,6 @@ BRIDGE_NAME_PREFIX = "brq"
 BRIDGE_FS = "/sys/devices/virtual/net/"
 BRIDGE_NAME_PLACEHOLDER = "bridge_name"
 BRIDGE_INTERFACES_FS = BRIDGE_FS + BRIDGE_NAME_PLACEHOLDER + "/brif/"
-
-
-from nova.openstack.common import processutils
 
 
 def get_neutron_bridge_name(network_id):
