@@ -19,16 +19,17 @@ CREATE TABLE `network_migration_info` (
   `ip_v6` varchar(39) DEFAULT NULL,
   `host` varchar(255) DEFAULT NULL,
   `mac_address` varchar(255) DEFAULT NULL,
+  `status` varchar(255) DEFAULT NULL,
+  `task_state` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
  ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 """
 
 
 def add_instance(cursor, instance):
-    if instance.status == 'ERROR':
-        return
     zone = getattr(instance, 'OS-EXT-AZ:availability_zone', None)
     host = getattr(instance, 'OS-EXT-SRV-ATTR:host', None)
+    task_state = getattr(instance, 'OS-EXT-STS:task_state', None)
 
     data = {
         'uuid': instance.id,
@@ -36,6 +37,8 @@ def add_instance(cursor, instance):
         'availability_zone': zone,
         'ip_v6': None,
         'ip_v4': None,
+        'status': instance.status,
+        'task_state': task_state,
     }
 
     for network_name, addresses in instance.addresses.items():
@@ -56,7 +59,8 @@ def add_instance(cursor, instance):
         uuid='%(uuid)s', network_name='%(network_name)s',
         availability_zone='%(availability_zone)s',
         ip_v4='%(ip_v4)s', ip_v6='%(ip_v6)s', host='%(host)s',
-        mac_address='%(mac_address)s'""" % data
+        mac_address='%(mac_address)s', status='%(status)s',
+        task_state='%(task_state)s'""" % data
         cursor.execute(sql)
         cursor.connection.commit()
 
@@ -74,8 +78,9 @@ def main():
     common.load_config(CONF, args.config)
 
     novac = common.get_nova_client()
+    print "Getting all instances"
     instances = common.all_servers(novac)
-
+    print "Got all instances"
     conn = MySQLdb.connect(
         host=CONF.get('db', 'host'),
         user=CONF.get('db', 'user'),
@@ -83,9 +88,11 @@ def main():
         db=CONF.get('db', 'name'))
     cursor = conn.cursor()
     try:
+        print "Dropping table if exists"
         cursor.execute('DROP TABLE network_migration_info')
     except:
         pass
+    print "Creating migration table"
     cursor.execute(CREATE_TABLE_SQL)
     conn.commit()
     count = 0
