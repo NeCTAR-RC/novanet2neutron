@@ -143,10 +143,10 @@ def migrate_interfaces(noop, migrate_manager, neutronc,
                     if not noop:
                         utils.add_dev_to_bridge(new_bridge, new_tap)
 
-            if not virt.has_virt_device(instance, new_tap):
-                virt.virt_switch_interface(noop, instance, mac_address,
-                                           old_bridge, old_tap,
-                                           new_bridge, new_tap)
+            #if not virt.has_virt_device(instance, new_tap):
+            #    virt.virt_switch_interface(noop, instance, mac_address,
+            #                               old_bridge, old_tap,
+            #                               new_bridge, new_tap)
     return errors
 
 
