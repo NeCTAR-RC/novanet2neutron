@@ -1,17 +1,26 @@
+# Connection information on how to connect to the migration DB
 [db]
 host=localhost
 name=nova
 user=nova
 password=secret
 
-[network_public]
-neutron_net_id = XXX-XXX-XXX-XXX
-nova_name = public
-device = eth1
-bridge = br100
+# Connection information on how to connect to your nova DB
+[nova_db]
+host=localhost
+name=nova
+user=nova
+password=secret
 
-[network_private]
-neutron_net_id = XXX-XXX-XXX-XXX
-nova_name = private
-device = eth2
-bridge = br50
+[network_public]# A unique name, must start with network_. If only one network no need to change
+neutron_net_id = XXX-XXX-XXX-XXX # The network ID as known by neutron (UUID)
+nova_name = public # The label of the network as defined in nova
+device = eth1 # The raw device that is attached to the bridge
+bridge = br100 # The name of the bridge that nova uses
+
+# If you have a second network uncomment and modify accordingly
+#[network_private]
+#neutron_net_id = XXX-XXX-XXX-XXX
+#nova_name = private
+#device = eth2
+#bridge = br50
