@@ -215,10 +215,10 @@ def main():
         migrate_interfaces(False, manager, neutronc,
                            cursor, networks, instances)
     if errors:
-        print "Cannot run due to errors"
+        print "ERROR: Cannot run due to errors"
     cursor.close()
     conn.close()
-
+    print "SUCCESS!"
 
 if __name__ == "__main__":
     main()
