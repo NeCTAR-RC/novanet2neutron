@@ -31,8 +31,11 @@ def get_mac_db(cursor, instance, network_name):
 def build_devmap():
     mappings = {}
     for device in netifaces.interfaces():
-        mac = netifaces.ifaddresses(device)[netifaces.AF_LINK][0]['addr']
-        mappings[mac] = device
+        try:
+            mac = netifaces.ifaddresses(device)[netifaces.AF_LINK][0]['addr']
+            mappings[mac] = device
+        except:
+            print("Skipping interface: %s" % device)
     return mappings
 
 
