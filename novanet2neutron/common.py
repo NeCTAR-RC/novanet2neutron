@@ -27,8 +27,10 @@ def get_neutron_client(url=None, username=None, password=None, tenant=None):
     password = os.environ.get('OS_PASSWORD', password)
     tenant = os.environ.get('OS_TENANT_NAME', tenant)
     assert url and username and password and tenant
-    return neutron_client.Client(username=username, password=password,
-                                 tenant_name=tenant, auth_url=url)
+    nc = neutron_client.Client(username=username, password=password,
+                               tenant_name=tenant, auth_url=url)
+    nc.httpclient.authenticate_and_fetch_endpoint_url()
+    return nc
 
 
 def all_servers(client, host=None):
