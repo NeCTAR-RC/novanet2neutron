@@ -151,10 +151,10 @@ def main():
     common.load_config(CONF, args.config)
 
     nova_conn = MySQLdb.connect(
-        host=CONF.get('db', 'host'),
-        user=CONF.get('db', 'user'),
-        passwd=CONF.get('db', 'password'),
-        db=CONF.get('db', 'name'))
+        host=CONF.get('nova_db', 'host'),
+        user=CONF.get('nova_db', 'user'),
+        passwd=CONF.get('nova_db', 'password'),
+        db=CONF.get('nova_db', 'name'))
 
     nova_cursor = MySQLdb.cursors.DictCursor(nova_conn)
     neutron_conn = MySQLdb.connect(

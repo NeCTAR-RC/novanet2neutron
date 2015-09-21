@@ -4,6 +4,12 @@ name=nova
 user=nova
 password=secret
 
+[nova_db]
+host=localhost
+name=nova
+user=nova
+password=secret
+
 [neutron_db]
 host=localhost
 name=neutron
