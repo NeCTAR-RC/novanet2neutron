@@ -75,6 +75,8 @@ def migrate_groups(nova_cursor, neutron_cursor):
     nova_cursor.execute("SELECT * from security_groups where deleted = 0")
     groups = nova_cursor.fetchall()
     for group in groups:
+        if group['project_id'] is None:
+            continue
         group_uuid = generate_uuid()
         group['uuid'] = group_uuid
         mappings[group['id']] = {'uuid': group_uuid,
