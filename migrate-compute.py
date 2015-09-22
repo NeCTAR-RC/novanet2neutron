@@ -207,7 +207,6 @@ def main():
                                          tenant=tenant,
                                          url=url)
 
-    neutronc = common.get_neutron_client()
     networks = []
     for section in CONF.sections():
         if section.startswith('network_'):
