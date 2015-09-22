@@ -23,7 +23,7 @@ def add_port(neutronc, host, ip_address, network_id, subnet_id):
     }
     try:
         port = neutronc.create_port(body=body_value)['port']
-        print "added port %s for %s ID=%s" % (ip_address, host, port['id'])
+        print "added port %s for %s ID: %s" % (ip_address, host, port['id'])
     except Exception, e:
         print e
 
