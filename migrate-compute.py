@@ -191,8 +191,22 @@ def main():
 
     cursor = MySQLdb.cursors.DictCursor(conn)
 
+    url = CONF.get('creds', 'auth_url')
+    username = CONF.get('creds', 'username')
+    password = CONF.get('creds', 'password')
+    tenant = CONF.get('creds', 'tenant_name')
+
     host = socket.gethostname()
-    novac = common.get_nova_client()
+    novac = common.get_nova_client(username=username,
+                                   password=password,
+                                   tenant=tenant,
+                                   url=url)
+
+    neutronc = common.get_neutron_client(username=username,
+                                         password=password,
+                                         tenant=tenant,
+                                         url=url)
+
     neutronc = common.get_neutron_client()
     networks = []
     for section in CONF.sections():

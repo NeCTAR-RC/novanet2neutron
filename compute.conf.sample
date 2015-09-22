@@ -12,6 +12,12 @@ name=nova
 user=nova
 password=secret
 
+[creds]
+username=admin
+password=secret
+tenant_name=admin
+auth_url=http://keystone.example.com:5000/v2.0/
+
 # Blocks must start with network_
 [network_public]
 neutron_net_id = XXX-XXX-XXX-XXX

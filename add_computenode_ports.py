@@ -79,7 +79,15 @@ def main():
     cursor = MySQLdb.cursors.DictCursor(conn)
     fixed_ips = get_hyperisor_fixed_ips(cursor)
 
-    neutronc = common.get_neutron_client()
+    url = CONF.get('creds', 'auth_url')
+    username = CONF.get('creds', 'username')
+    password = CONF.get('creds', 'password')
+    tenant = CONF.get('creds', 'tenant_name')
+
+    neutronc = common.get_neutron_client(username=username,
+                                         password=password,
+                                         tenant=tenant,
+                                         url=url)
     add_ports(cursor, neutronc, fixed_ips)
     cursor.close()
     conn.close()
