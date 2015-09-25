@@ -22,6 +22,19 @@ def add_system_metadata(cursor, instance):
     cursor.execute(sql)
     cursor.connection.commit()
 
+
+def needs_sys_key(cursor, instance):
+    sql = """SELECT * from  instance_system_metadata WHERE
+    instance_uuid='%s' and  instance_system_metadata.key =
+    'nectar_suspend_disabled' and deleted=0""" % instance['uuid']
+    cursor.execute(sql)
+    data = cursor.fetchall()
+    print data
+    if data:
+        return False
+    return True
+
+
 def collect_args():
     parser = argparse.ArgumentParser(description='novanet2neutron.')
 
@@ -43,7 +56,8 @@ def main():
     cursor = MySQLdb.cursors.DictCursor(conn)
     instances = get_instances(cursor)
     for instance in instances:
-        add_system_metadata(cursor, instance)
+        if needs_sys_key(cursor, instance):
+            add_system_metadata(cursor, instance)
     conn.commit()
     cursor.close()
     conn.close()
