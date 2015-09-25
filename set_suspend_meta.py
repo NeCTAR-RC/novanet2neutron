@@ -15,6 +15,7 @@ def get_instances(cursor):
     instances = cursor.fetchall()
     return instances
 
+
 def add_system_metadata(cursor, instance):
     sql = """INSERT INTO instance_system_metadata SET created_at=NOW(), 
     instance_uuid='%s', instance_system_metadata.key='nectar_suspend_disabled', 
