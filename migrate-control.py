@@ -47,7 +47,7 @@ def add_port(neutronc, instance, network_id, subnet_id,
         print "Not attaching, already attached %s" % instance.id
 
 
-def add_ports(neutronc, cursor, mappings, instance):
+def add_ports(neutronc, cursor, mappings, instance, target_zone):
     #suspend = False
     #if instance.status == "SUSPENDED":
     #    instance.resume()
@@ -61,6 +61,8 @@ def add_ports(neutronc, cursor, mappings, instance):
         zone = network['availability_zone']
         if zone is None or zone == 'None':
             print "unknown zone for %s" % instance.id
+            continue
+        if zone != target_zone:
             continue
 
         network_name = network['network_name']
@@ -138,13 +140,15 @@ def collect_args():
 
     parser.add_argument('-c', '--config', action='store',
                         default='novanet2neutron.conf', help="Config file")
+    parser.add_argument('-z', '--zone', action='store',
+                        help="AZ to migrate")
     return parser.parse_args()
 
 
 def main():
     args = collect_args()
     common.load_config(CONF, args.config)
-
+    target_zone = args.zone
     conn = MySQLdb.connect(
         host=CONF.get('db', 'host'),
         user=CONF.get('db', 'user'),
@@ -162,7 +166,7 @@ def main():
     print "adding ports"
 
     for i in instances:
-        add_ports(neutronc, cursor, mappings, i)
+        add_ports(neutronc, cursor, mappings, i, target_zone)
     cursor.close()
     conn.close()
 
