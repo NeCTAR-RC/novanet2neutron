@@ -45,11 +45,11 @@ class NeutronMigration(NetworkMigration):
 
     def get_new_tap(self, instance, index):
         GET_TAP_SQL = """
-        SELECT neutron_tap_device from network_migration_info where uuid='%s'
+        SELECT neutron_tap_name from network_migration_info where uuid='%s'
         and network_name='%s';
-        """ 
-        cursor.execute(GET_TAP_SQL % (instance.id, self.network['network_name']))
-        row = cursor.fetchone()
+        """
+        self.cursor.execute(GET_TAP_SQL % (instance.id, self.network['nova_name']))
+        row = self.cursor.fetchone()
         return row[0]
 
 

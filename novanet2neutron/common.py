@@ -121,4 +121,4 @@ def get_db_data(cursor, instance, network_name):
 
 
 def get_mac_db(cursor, instance, network_name):
-    return get_db_data(cursor, instance, network_name)['mac_address']
+    return get_db_data(cursor, instance, network_name)[6]
