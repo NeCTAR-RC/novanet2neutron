@@ -14,20 +14,6 @@ from novanet2neutron import virt
 CONF = ConfigParser.ConfigParser()
 
 
-def get_mac_db(cursor, instance, network_name):
-    sql = """SELECT * from network_migration_info where uuid = '%(uuid)s'
-    AND network_name = '%(network_name)s'
-    """
-    cursor.execute(sql % {'uuid': instance.id,
-                          'network_name': network_name})
-    rows = cursor.fetchall()
-    if len(rows) > 1:
-        print "ERROR"
-    if len(rows) == 0:
-        return None
-    return rows[0]['mac_address']
-
-
 def build_devmap():
     mappings = {}
     for device in netifaces.interfaces():
@@ -120,7 +106,7 @@ def migrate_interfaces(noop, migrate_manager, neutronc,
                 utils.add_dev_to_bridge(new_bridge, raw_device)
 
         for instance in instances:
-            mac_address = get_mac_db(cursor, instance, network['nova_name'])
+            mac_address = common.get_mac_db(cursor, instance, network['nova_name'])
             if not mac_address:
                 continue
             if instance.status in ['SHUTOFF', 'SUSPENDED']:

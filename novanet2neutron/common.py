@@ -103,3 +103,22 @@ def get_subnet(neutronc, network_id, protocol):
     if len(subnets) == 1:
         return subnets[0]['id']
     return None
+
+
+def get_db_data(cursor, instance, network_name):
+    sql = """SELECT * from network_migration_info where uuid = '%(uuid)s'
+    AND network_name = '%(network_name)s'
+    """
+    # EXTERNAL CALL
+    cursor.execute(sql % {'uuid': instance.id,
+                          'network_name': network_name})
+    rows = cursor.fetchall()
+    if len(rows) > 1:
+        print "ERROR"
+    if len(rows) == 0:
+        return None
+    return rows[0]
+
+
+def get_mac_db(cursor, instance, network_name):
+    return get_db_data(cursor, instance, network_name)['mac_address']
