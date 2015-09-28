@@ -7,6 +7,7 @@ import MySQLdb
 import netifaces
 
 from novanet2neutron import common
+from novanet2neutron import offline
 from novanet2neutron import utils
 from novanet2neutron import virt
 
@@ -27,9 +28,9 @@ def build_devmap():
 
 class NetworkMigration(object):
 
-    def __init__(self, network, neutron_client):
+    def __init__(self, network, cursor):
         self.network = network
-        self.neutron_client = neutron_client
+        self.cursor = cursor
 
 
 class NeutronMigration(NetworkMigration):
@@ -43,17 +44,13 @@ class NeutronMigration(NetworkMigration):
         return utils.get_neutron_bridge_name(self.network['id'])
 
     def get_new_tap(self, instance, index):
-        ports = self.neutron_client.list_ports(device_id=instance.id,
-                                               network_id=self.network['id'])
-        if not ports['ports']:
-            print "%s ERROR no neutron port found, cannot migrate" % instance.id
-            return None
-        if len(ports['ports']) != 1:
-            print "%s ERROR multiple neutron ports found, cannot migrate" % instance.id
-            return None
-
-        new_tap = utils.get_neutron_tap_device_name(ports['ports'][0].get('id'))
-        return new_tap
+        GET_TAP_SQL = """
+        SELECT neutron_tap_device from network_migration_info where uuid='%s'
+        and network_name='%s';
+        """ 
+        cursor.execute(GET_TAP_SQL % (instance.id, self.network['network_name']))
+        row = cursor.fetchone()
+        return row[0]
 
 
 class NovaMigration(NetworkMigration):
@@ -70,13 +67,13 @@ class NovaMigration(NetworkMigration):
         return utils.get_nova_vnet_name(index)
 
 
-def migrate_interfaces(noop, migrate_manager, neutronc,
+def migrate_interfaces(noop, migrate_manager,
                        cursor, networks, instances):
     errors = False
     device_map = build_devmap()
     tap_index = 0
     for network in networks:
-        manager = migrate_manager(network, neutronc)
+        manager = migrate_manager(network, cursor)
         old_bridge = manager.get_old_bridge()
         new_bridge = manager.get_new_bridge()
         raw_device = network['device']
@@ -203,6 +200,9 @@ def main():
             networks.append(network)
 
     instances = common.all_servers(novac, host=host)
+    offline_cursor = offline.populate_offline_cache(cursor, neutronc, instances, networks)
+    cursor.close()
+    conn.close()
     if direction == 'neutron':
         manager = NeutronMigration
     elif direction == 'nova':
@@ -210,16 +210,16 @@ def main():
     else:
         print "unknown direction"
     print "Running checks"
-    errors = migrate_interfaces(True, manager, neutronc, cursor,
+    errors = migrate_interfaces(True, manager, offline_cursor,
                                 networks, instances)
     if not noop and not errors:
         print "running for real"
-        migrate_interfaces(False, manager, neutronc,
-                           cursor, networks, instances)
+        migrate_interfaces(False, manager, offline_cursor,
+                           networks, instances)
     if errors:
         print "ERROR: Cannot run due to errors"
-    cursor.close()
-    conn.close()
+    offline_cursor.close()
+    offline_cursor.connection.close()
     print "SUCCESS!"
 
 if __name__ == "__main__":
