@@ -45,6 +45,7 @@ def device_exists(device):
 def add_dev_to_bridge(bridge, dev):
     if device_exists(dev) and device_exists(bridge):
         try:
+            print "Running Cmd: brctl addif %s %s" % (bridge, dev)
             processutils.execute('brctl', 'addif', bridge, dev,
                                  run_as_root=True,
                                  check_exit_code=[0, 2, 254])
@@ -55,6 +56,7 @@ def add_dev_to_bridge(bridge, dev):
 def rm_dev_from_bridge(bridge, dev):
     if device_exists(dev) and device_exists(bridge):
         try:
+            print "Running Cmd: brctl delif %s %s" % (bridge, dev)
             processutils.execute('brctl', 'delif', bridge, dev,
                                  run_as_root=True,
                                  check_exit_code=[0, 2, 254])
@@ -65,6 +67,7 @@ def rm_dev_from_bridge(bridge, dev):
 def net_dev_up(dev):
     if device_exists(dev):
         try:
+            print "Running Cmd: ip link set %s up" % dev
             processutils.execute('ip', 'link', 'set', dev, 'up',
                                  run_as_root=True,
                                  check_exit_code=[0, 2, 254])
@@ -75,6 +78,7 @@ def net_dev_up(dev):
 def net_dev_down(dev):
     if device_exists(dev):
         try:
+            print "Running Cmd: ip link set %s down" % dev
             processutils.execute('ip', 'link', 'set', dev, 'down',
                                  run_as_root=True,
                                  check_exit_code=[0, 2, 254])
@@ -90,6 +94,7 @@ def rename_net_dev(old, new):
     if device_exists(old):
         try:
             net_dev_down(old)
+            print "Running Cmd: ip link set %s name %s" % (old, new)
             processutils.execute('ip', 'link', 'set', old, 'name', new,
                                  run_as_root=True,
                                  check_exit_code=[0, 2, 254])
