@@ -78,31 +78,25 @@ def migrate_interfaces(noop, migrate_manager,
         new_bridge = manager.get_new_bridge()
         raw_device = network['device']
 
-        #remove interfaces from bridge
+        # remove interfaces from bridge
         interfaces = utils.get_interfaces_on_bridge(old_bridge)
         for interface in interfaces:
+            # Remove all instance taps from bridge
             if interface != raw_device and interface.startswith(manager.tap_prefix):
-                print "removing interface %s from bridge %s" % (interface,
-                                                                old_bridge)
-                if not noop:
-                    utils.rm_dev_from_bridge(old_bridge, interface)
+                utils.rm_dev_from_bridge(noop, old_bridge, interface)
         if not utils.device_exists(new_bridge):
             # Remove pyhsical interfce from bridge
-            print "removing %s from %s" % (raw_device, old_bridge)
-            if not noop:
-                utils.rm_dev_from_bridge(old_bridge, raw_device)
-            #rename bridge
-            print "Renaming brige %s to %s" % (old_bridge, new_bridge)
-            if not noop:
-                utils.rename_net_dev(old_bridge, new_bridge)
+            utils.rm_dev_from_bridge(noop, old_bridge, raw_device)
+            # rename bridge
+            utils.rename_net_dev(noop, old_bridge, new_bridge)
 
         interfaces = utils.get_interfaces_on_bridge(new_bridge)
         if raw_device not in interfaces:
-            print "Add %s to %s" % (raw_device, new_bridge)
-            if not noop:
-                utils.add_dev_to_bridge(new_bridge, raw_device)
+            # Add raw device back onto bridge
+            utils.add_dev_to_bridge(noop, new_bridge, raw_device)
 
         for instance in instances:
+            print "Migrating %s" % instance.id
             mac_address = common.get_mac_db(cursor, instance, network['nova_name'])
             if not mac_address:
                 continue
@@ -115,20 +109,15 @@ def migrate_interfaces(noop, migrate_manager,
                     continue
                 tap_index += 1
                 if not utils.device_exists(new_tap):
-                    #Rename tap
+                    # Rename tap
                     mac = mac_address.replace('fa:', 'fe:', 1)
                     old_tap = device_map[mac]
-                    print "%s: Rename tap %s to %s" % (instance.id, old_tap, new_tap)
-                    if not noop:
-                        utils.rename_net_dev(old_tap, new_tap)
+                    utils.rename_net_dev(noop, old_tap, new_tap)
                 if new_tap not in interfaces:
                     # add interface to bridge
-                    print "%s: Add tap %s to bridge %s" % (instance.id,
-                                                           new_tap,
-                                                           new_bridge)
-                    if not noop:
-                        utils.add_dev_to_bridge(new_bridge, new_tap)
+                    utils.add_dev_to_bridge(noop, new_bridge, new_tap)
 
+            # Don't do this anymore as breaks RH based instances
             #if not virt.has_virt_device(instance, new_tap):
             #    virt.virt_switch_interface(noop, instance, mac_address,
             #                               old_bridge, old_tap,
