@@ -44,7 +44,14 @@ def populate_offline_cache(source_cursor, nclient, instances, networks):
 
     conn = sqlite3.connect('offline-cache.db')
     cursor = conn.cursor()
+    try:
+        cursor.execute("DROP TABLE network_migration_info")
+        print "Dropped previous offline cache"
+    except:
+        pass
+    print "Creating offline cache"
     cursor.execute(CREATE_TABLE_SQL)
+
     for i in instances:
         for n in networks:
             data = common.get_db_data(source_cursor, i, n['nova_name'])
@@ -60,6 +67,7 @@ def populate_offline_cache(source_cursor, nclient, instances, networks):
             cursor.execute(sql)
             conn.commit()
     conn.commit()
+    print "Offline cache created"
     return cursor
 
 

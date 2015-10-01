@@ -116,6 +116,7 @@ def get_db_data(cursor, instance, network_name):
     if len(rows) > 1:
         print "ERROR"
     if len(rows) == 0:
+        print "Can't find DB data for %s on network %s" % (instance.id, network_name)
         return None
     return rows[0]
 
