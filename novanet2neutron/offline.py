@@ -61,7 +61,10 @@ def populate_offline_cache(source_cursor, nclient, instances, networks):
             data['neutron_tap_name'] = neutron_tap
             data['port_id'] = port_id
             mac = data['mac_address'].replace('fa:', 'fe:', 1)
-            nova_tap = get_devname(mac)
+            if i.status == 'SHUTOFF':
+                nova_tap = ''
+            else:
+                nova_tap = get_devname(mac)
             data['nova_tap_name'] = nova_tap
             sql = INSERT_SQL % data
             cursor.execute(sql)
