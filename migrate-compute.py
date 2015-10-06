@@ -94,6 +94,7 @@ def migrate_interfaces(noop, migrate_manager,
         if raw_device not in interfaces:
             # Add raw device back onto bridge
             utils.add_dev_to_bridge(noop, new_bridge, raw_device)
+            utils.add_route(noop, new_bridge, network['default_gw'])
 
         for instance in instances:
             print "Migrating %s" % instance.id
@@ -184,7 +185,7 @@ def main():
         if section.startswith('network_'):
             network_id = CONF.get(section, 'neutron_net_id')
             network = get_network(neutronc, network_id)
-            for option in ('device', 'bridge', 'nova_name'):
+            for option in ('device', 'bridge', 'nova_name', 'default_gw'):
                 network[option] = CONF.get(section, option)
             networks.append(network)
 

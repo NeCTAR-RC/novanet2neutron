@@ -42,6 +42,19 @@ def device_exists(device):
     return os.path.exists('/sys/class/net/%s' % device)
 
 
+def add_route(noop, bridge, default_gw):
+    try:
+        print "Running Cmd: ip route add default via %s dev %s" % (
+            default_gw, bridge)
+        if not noop:
+            processutils.execute('ip', 'route', 'add', 'default', 'via',
+                                 default_gw, 'dev', bridge,
+                                 run_as_root=True,
+                                 check_exit_code=[0, 2, 254])
+    except processutils.ProcessExecutionError:
+        print "ERROR adding route"
+
+
 def add_dev_to_bridge(noop, bridge, dev):
     if (device_exists(dev) and device_exists(bridge)) or noop:
         try:
